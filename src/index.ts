@@ -25,8 +25,11 @@ const FileCreatedBy = "fileCreatedBy";
 const FileCreatedByEmail = "fileCreatedByEmail";
 const FileMimeType = "fileMimeType";
 const FilePath = "filePath";
+const FolderName = "folderName";
+const FolderPath = "folderPath";
 
 const FileSearch = "searchFile";
+const CreateFolder = "createFolder";
 
 //OnDescribe
 ondescribe = function () {
@@ -81,6 +84,16 @@ ondescribe = function () {
                         displayName: "File Path",
                         description: "File Path",
                         type: "string"
+                    },
+                    [FolderName]: {
+                        displayName: "Folder Name",
+                        description: "Folder Name",
+                        type: "string"
+                    },
+                    [FolderPath]: {
+                        displayName: "Folder Path",
+                        description: "Folder Path",
+                        type: "string"
                     }
                 },
                 methods: {
@@ -90,6 +103,13 @@ ondescribe = function () {
                         inputs: [FileName, FilePath],
                         requiredInputs: [FileName],
                         outputs: [FileId, FileWebUrl, FileSize, FileName, FileCreated, FileCreatedBy, FileCreatedByEmail, FileMimeType]
+                    },
+                    [CreateFolder]: {
+                        displayName: "Create Folder",
+                        type: "execute",
+                        inputs: [FolderName, FolderPath],
+                        requiredInputs: [FolderName],
+                        outputs: []
                     }
                 }
             }
@@ -112,6 +132,9 @@ function onexecuteDrive(methodName: string, parameters: SingleRecord, properties
     switch (methodName) {
         case FileSearch:
             onexecuteSearchFile(parameters, properties);
+            break;
+        case CreateFolder:
+            onexecuteCreateFolder(parameters, properties);
             break;
         default: throw new Error("The method " + methodName + " is not supported..");
     }
@@ -188,19 +211,18 @@ function ExecuteRequest(url: string, data: string, requestType: string, cb) {
 function onexecuteSearchFile(parameters: SingleRecord, properties: SingleRecord) {
     GetDriveFile(parameters, properties, function (a) {
         var resultObj = {
-            [FileId]: "", 
+            [FileId]: "",
             [FileWebUrl]: "",
-            [FileSize]: 0, 
-            [FileName]: "", 
-            [FileCreated]: null, 
-            [FileCreatedBy]: "", 
-            [FileCreatedByEmail]: "", 
+            [FileSize]: 0,
+            [FileName]: "",
+            [FileCreated]: null,
+            [FileCreatedBy]: "",
+            [FileCreatedByEmail]: "",
             [FileMimeType]: ""
         };
 
-        if (a.value.length > 0)
-        {
-            resultObj[FileId] = a.value[0].id; 
+        if (a.value.length > 0) {
+            resultObj[FileId] = a.value[0].id;
             resultObj[FileWebUrl] = a.value[0].webUrl;
             resultObj[FileSize] = a.value[0].size;
             resultObj[FileName] = a.value[0].name;
@@ -220,16 +242,45 @@ function GetDriveFile(parameters: SingleRecord, properties: SingleRecord, cb) {
     if (!(typeof fileName === "string")) throw new Error("properties[FileName] is not of type string");
 
     var url;
-    if ((typeof filePath === "string") && (filePath != ""))
-    {
+    if ((typeof filePath === "string") && (filePath != "")) {
         url = baseUriEndpoint + `/me/drive/root:/${filePath}:/search(q='${fileName}')`;
     }
-    else
-    {
+    else {
         url = baseUriEndpoint + `/me/drive/root/search(q='${fileName}')`;
     }
-    
+
     ExecuteRequest(url, null, "GET", function (responseText) {
+        if (typeof cb === 'function')
+            cb(responseText);
+    });
+}
+
+function onexecuteCreateFolder(parameters: SingleRecord, properties: SingleRecord) {
+    CreateDriveFolder(parameters, properties, function () {
+        postResult({});
+    });
+}
+
+function CreateDriveFolder(parameters: SingleRecord, properties: SingleRecord, cb) {
+    let folderName = properties[FolderName];
+    let folderPath = properties[FolderPath];
+    if (!(typeof folderName === "string")) throw new Error("properties[FolderName] is not of type string");
+
+    var url;
+    if ((typeof folderPath === "string") && (folderPath != "")) {
+        url = baseUriEndpoint + `/me/drive/root:/${folderPath}:/children')`;
+    }
+    else {
+        url = baseUriEndpoint + `/me/drive/root/children)`;
+    }
+
+    var data = {
+        "name": folderName,
+        "folder": {},
+        "@microsoft.graph.conflictBehavior": "replace"
+    };
+
+    ExecuteRequest(url, JSON.stringify(data), "POST", function (responseText) {
         if (typeof cb === 'function')
             cb(responseText);
     });
