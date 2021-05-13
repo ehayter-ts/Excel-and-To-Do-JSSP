@@ -257,7 +257,7 @@ function GetDriveFile(parameters: SingleRecord, properties: SingleRecord, cb) {
 
 function onexecuteCreateFolder(parameters: SingleRecord, properties: SingleRecord) {
     CreateDriveFolder(parameters, properties, function () {
-        postResult({});
+        //postResult({});
     });
 }
 
