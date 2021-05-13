@@ -256,9 +256,9 @@ function GetDriveFile(parameters: SingleRecord, properties: SingleRecord, cb) {
 }
 
 function onexecuteCreateFolder(parameters: SingleRecord, properties: SingleRecord) {
-    CreateDriveFolder(parameters, properties, function () {
+    //CreateDriveFolder(parameters, properties, function () {
         postResult({});
-    });
+    //});
 }
 
 function CreateDriveFolder(parameters: SingleRecord, properties: SingleRecord, cb) {
@@ -282,6 +282,6 @@ function CreateDriveFolder(parameters: SingleRecord, properties: SingleRecord, c
 
     ExecuteRequest(url, JSON.stringify(data), "POST", function (responseText) {
         if (typeof cb === 'function')
-            cb(responseText);
+            cb();
     });
 }
