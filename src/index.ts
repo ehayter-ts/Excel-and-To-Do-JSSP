@@ -204,9 +204,9 @@ function onexecuteSearchFile(parameters: SingleRecord, properties: SingleRecord)
             resultObj[FileWebUrl] = a.value[0].webUrl;
             resultObj[FileSize] = a.value[0].size;
             resultObj[FileName] = a.value[0].name;
-            resultObj[FileCreated] = a.value[0].createdDateTime;
-            resultObj[FileCreatedBy] = a.value[0].createdBy.displayName;
-            resultObj[FileCreatedByEmail] = a.value[0].createdBy.email;
+            resultObj[FileCreated] = Date.parse(a.value[0].createdDateTime);
+            resultObj[FileCreatedBy] = a.value[0].createdBy.user.displayName;
+            resultObj[FileCreatedByEmail] = a.value[0].createdBy.user.email;
             resultObj[FileMimeType] = a.value[0].file.mimeType;
         }
 
