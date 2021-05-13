@@ -256,22 +256,23 @@ function GetDriveFile(parameters: SingleRecord, properties: SingleRecord, cb) {
 }
 
 function onexecuteCreateFolder(parameters: SingleRecord, properties: SingleRecord) {
-    //CreateDriveFolder(parameters, properties, function () {
+    CreateDriveFolder(parameters, properties, function () {
         postResult({});
-    //});
+    });
 }
 
 function CreateDriveFolder(parameters: SingleRecord, properties: SingleRecord, cb) {
     let folderName = properties[FolderName];
     let folderPath = properties[FolderPath];
+
     if (!(typeof folderName === "string")) throw new Error("properties[FolderName] is not of type string");
 
     var url;
     if ((typeof folderPath === "string") && (folderPath != "")) {
-        url = baseUriEndpoint + `/me/drive/root:/${folderPath}:/children')`;
+        url = baseUriEndpoint + `/me/drive/root:/${folderPath}:/children'`;
     }
     else {
-        url = baseUriEndpoint + `/me/drive/root/children)`;
+        url = baseUriEndpoint + `/me/drive/root/children`;
     }
 
     var data = {
@@ -280,7 +281,7 @@ function CreateDriveFolder(parameters: SingleRecord, properties: SingleRecord, c
         "@microsoft.graph.conflictBehavior": "replace"
     };
 
-    ExecuteRequest(url, JSON.stringify(data), "POST", function (responseText) {
+    ExecuteRequest(url, JSON.stringify(data), "POST", function () {
         if (typeof cb === 'function')
             cb();
     });
