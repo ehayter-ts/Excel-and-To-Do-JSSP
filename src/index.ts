@@ -154,7 +154,7 @@ ondescribe = function () {
                         type: "list",
                         inputs: [FileId, ExcelSheetName],
                         requiredInputs: [FileId, ExcelSheetName],
-                        outputs: []
+                        outputs: [Column1, Column2]
                     }
                 }
             }
@@ -354,13 +354,16 @@ function CreateDriveFolder(parameters: SingleRecord, properties: SingleRecord, c
 
 function onexecuteUsedRange(parameters: SingleRecord, properties: SingleRecord) {
     GetRangeItems(parameters, properties, function (a) {
-        
-        postResult(a.text.map(x => {
+        var obj = a.text.map(x => {
             return {
                 [Column1]: x[0],
                 [Column2]: x[1]
             };
-        }));
+        });
+
+        console.log(obj);
+        
+        postResult(obj);
     });
 }
 
