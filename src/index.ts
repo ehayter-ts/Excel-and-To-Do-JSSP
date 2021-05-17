@@ -179,7 +179,7 @@ function onexecuteDrive(methodName: string, parameters: SingleRecord, properties
 function onexecuteExcel(methodName: string, parameters: SingleRecord, properties: SingleRecord) {
     switch (methodName) {
         case UsedRangeItems:
-            onexecuteGetItems(parameters, properties);
+            onexecuteUsedRange(parameters, properties);
             break;
         default: throw new Error("The method " + methodName + " is not supported..");
     }
