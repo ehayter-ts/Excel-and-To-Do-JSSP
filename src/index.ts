@@ -148,7 +148,7 @@ function ExecuteRequest(url: string, data: string, requestType: string, cb) {
             return;
         if (xhr.status == 201) {
             //console.log("ExecuteRequest XHR status: " + xhr.status + "," + xhr.responseText);
-            var obj = {};
+            var obj;
             
             try {
                 obj = JSON.parse(xhr.responseText);
