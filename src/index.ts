@@ -35,6 +35,8 @@ const CreateFolder = "createFolder";
 //
 //Excel
 const ExcelSheetName = "sheetName";
+const Column1 = "column1";
+const Column2 = "column2";
 
 const UsedRangeItems = "getUsedRangeItems";
 
@@ -133,6 +135,16 @@ ondescribe = function () {
                     [ExcelSheetName]: {
                         displayName: "Sheet Name",
                         description: "Sheet Name",
+                        type: "string"
+                    },
+                    [Column1]: {
+                        displayName: "Column 1",
+                        description: "Column 1",
+                        type: "string"
+                    },
+                    [Column2]: {
+                        displayName: "Column 2",
+                        description: "Column 2",
                         type: "string"
                     }
                 },
@@ -344,13 +356,10 @@ function onexecuteUsedRange(parameters: SingleRecord, properties: SingleRecord) 
     GetRangeItems(parameters, properties, function (a) {
         
         postResult(a.text.map(x => {
-            var obj = {};
-
-            for (var i = 0; i < x.length; i++)
-            {
-                obj["Column " + (i + 1)] = x[i];
-            }
-            return obj;
+            return {
+                [Column1]: x[0],
+                [Column2]: x[1]
+            };
         }));
     });
 }
