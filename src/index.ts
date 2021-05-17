@@ -13,6 +13,7 @@ const baseUriEndpointBeta = "https://graph.microsoft.com/beta";
 //
 // Objects
 const Drive = "drive";
+const Excel = "excel";
 
 //
 //Drive
@@ -30,6 +31,13 @@ const FolderPath = "folderPath";
 
 const FileSearch = "searchFile";
 const CreateFolder = "createFolder";
+
+//
+//Excel
+const ExcelSheetName = "sheetName";
+
+const UsedRangeItems = "getUsedRangeItems";
+
 
 //OnDescribe
 ondescribe = function () {
@@ -112,6 +120,31 @@ ondescribe = function () {
                         outputs: []
                     }
                 }
+            },
+            [Excel]: {
+                displayName: "Excel",
+                description: "Excel",
+                properties: {
+                    [FileId]: {
+                        displayName: "File ID",
+                        description: "File ID",
+                        type: "string"
+                    },
+                    [ExcelSheetName]: {
+                        displayName: "Sheet Name",
+                        description: "Sheet Name",
+                        type: "string"
+                    }
+                },
+                methods: {
+                    [UsedRangeItems]: {
+                        displayName: "Get Worksheet Rows in Used Range",
+                        type: "list",
+                        inputs: [FileId, ExcelSheetName],
+                        requiredInputs: [FileId, ExcelSheetName],
+                        outputs: []
+                    }
+                }
             }
         }
 
@@ -123,6 +156,9 @@ onexecute = function ({ objectName, methodName, parameters, properties }) {
     switch (objectName) {
         case Drive:
             onexecuteDrive(methodName, parameters, properties);
+            break;
+        case Excel:
+            onexecuteExcel(methodName, parameters, properties);
             break;
         default: throw new Error("The object " + objectName + " is not supported.");
     }
@@ -140,6 +176,15 @@ function onexecuteDrive(methodName: string, parameters: SingleRecord, properties
     }
 }
 
+function onexecuteExcel(methodName: string, parameters: SingleRecord, properties: SingleRecord) {
+    switch (methodName) {
+        case UsedRangeItems:
+            onexecuteGetItems(parameters, properties);
+            break;
+        default: throw new Error("The method " + methodName + " is not supported..");
+    }
+}
+
 function ExecuteRequest(url: string, data: string, requestType: string, cb) {
     var xhr = new XMLHttpRequest();
     xhr.onreadystatechange = function () {
@@ -149,15 +194,14 @@ function ExecuteRequest(url: string, data: string, requestType: string, cb) {
         if (xhr.status == 201) {
             //console.log("ExecuteRequest XHR status: " + xhr.status + "," + xhr.responseText);
             var obj;
-            
+
             try {
                 obj = JSON.parse(xhr.responseText);
             }
-            catch(e)
-            {
+            catch (e) {
                 //do nothing
             }
-            
+
             if (typeof cb === 'function')
                 cb(obj);
         }
@@ -293,5 +337,35 @@ function CreateDriveFolder(parameters: SingleRecord, properties: SingleRecord, c
     ExecuteRequest(url, JSON.stringify(data), "POST", function () {
         if (typeof cb === 'function')
             cb();
+    });
+}
+
+function onexecuteUsedRange(parameters: SingleRecord, properties: SingleRecord) {
+    GetRangeItems(parameters, properties, function (a) {
+        
+        postResult(a.text.map(x => {
+            var obj = {};
+
+            for (var i = 0; i < x.length; i++)
+            {
+                obj["Column " + (i + 1)] = x[i];
+            }
+            return obj;
+        }));
+    });
+}
+
+function GetRangeItems(parameters: SingleRecord, properties: SingleRecord, cb) {
+    let fileId = properties[FileId];
+    let sheetName = properties[ExcelSheetName];
+
+    if (!(typeof fileId === "string")) throw new Error("properties[FileId] is not of type string");
+    if (!(typeof sheetName === "string")) throw new Error("properties[ExcelSheetName] is not of type string");
+
+    var url = baseUriEndpoint + `/me/drive/items/${fileId}/workbook/worksheets('${sheetName}')/usedRange`;
+    
+    ExecuteRequest(url, null, "GET", function (responseText) {
+        if (typeof cb === 'function')
+            cb(responseText);
     });
 }
