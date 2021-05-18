@@ -469,12 +469,12 @@ function onexecuteUsedRange(parameters: SingleRecord, properties: SingleRecord) 
             {
                 if ((i + 1) < 21)
                 {
-                    obj["Column" + (i + 1)] = x[i];
+                    obj["column" + (i + 1)] = x[i];
                 }
             }
             return obj;
         });
-        
+
         postResult(obj);
     });
 }
