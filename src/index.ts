@@ -284,7 +284,7 @@ ondescribe = function () {
                     }
                 }
             },
-            [Drive]: {
+            [Group]: {
                 displayName: "Group",
                 description: "Group",
                 properties: {
