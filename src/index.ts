@@ -1,19 +1,20 @@
 import '@k2oss/k2-broker-core';
 
 metadata = {
-    systemName: "MSExcelTodoJSSP",
-    displayName: "Microsoft Excel and To Do",
-    description: "A connector for Microsoft Excel and To Do"
+    systemName: "MSExcelPlannerJSSP",
+    displayName: "Microsoft Excel and Planner",
+    description: "A connector for Microsoft Excel and Planner"
 };
 
 // Constants
 const baseUriEndpoint = "https://graph.microsoft.com/v1.0";
-const baseUriEndpointBeta = "https://graph.microsoft.com/beta";
 
 //
 // Objects
 const Drive = "drive";
 const Excel = "excel";
+const Group = "group";
+const Planner = "planner";
 
 //
 //Drive
@@ -57,6 +58,23 @@ const Column19 = "column19";
 const Column20 = "column20";
 
 const UsedRangeItems = "getUsedRangeItems";
+
+//
+//Group
+const GroupId = "groupId";
+const GroupName = "groupName";
+const GroupDescription = "groupDescription";
+const GroupMail = "groupMail";
+const GroupVisibility = "groupVisibility";
+
+const GetGroups = "getGroups";
+
+//
+//Planner
+const PlanTitle = "planTitle";
+const PlanOwnerGroup = "ownerGroup";
+
+const GetToDoLists = "getToDoLists";
 
 
 //OnDescribe
@@ -265,6 +283,51 @@ ondescribe = function () {
                         outputs: [Column1, Column2, Column3, Column4, Column5, Column6, Column7, Column8, Column9, Column10, Column11, Column12, Column13, Column14, Column15, Column16, Column17, Column18, Column19, Column20]
                     }
                 }
+            },
+            [Drive]: {
+                displayName: "Group",
+                description: "Group",
+                properties: {
+                    [GroupId]: {
+                        displayName: "Group ID",
+                        description: "Group ID",
+                        type: "string"
+                    },
+                    [GroupName]: {
+                        displayName: "Group Name",
+                        description: "Group Name",
+                        type: "string"
+                    },
+                    [GroupDescription]: {
+                        displayName: "Group Description",
+                        description: "Group Description",
+                        type: "string"
+                    },
+                    [GroupMail]: {
+                        displayName: "Group Mail",
+                        description: "Group Mail",
+                        type: "string"
+                    },
+                    [GroupVisibility]: {
+                        displayName: "Group Visibility",
+                        description: "Group Visibility",
+                        type: "string"
+                    },
+                    [FileCreatedBy]: {
+                        displayName: "File Created By",
+                        description: "File Created By",
+                        type: "string"
+                    }
+                },
+                methods: {
+                    [GetGroups]: {
+                        displayName: "Get all Groups in Organisation",
+                        type: "list",
+                        inputs: [],
+                        requiredInputs: [],
+                        outputs: [GroupId, GroupName, GroupDescription, GroupMail, GroupVisibility]
+                    }
+                }
             }
         }
 
@@ -279,6 +342,9 @@ onexecute = function ({ objectName, methodName, parameters, properties }) {
             break;
         case Excel:
             onexecuteExcel(methodName, parameters, properties);
+            break;
+        case Group:
+            onexecuteGroup(methodName, parameters, properties);
             break;
         default: throw new Error("The object " + objectName + " is not supported.");
     }
@@ -300,6 +366,15 @@ function onexecuteExcel(methodName: string, parameters: SingleRecord, properties
     switch (methodName) {
         case UsedRangeItems:
             onexecuteUsedRange(parameters, properties);
+            break;
+        default: throw new Error("The method " + methodName + " is not supported..");
+    }
+}
+
+function onexecuteGroup(methodName: string, parameters: SingleRecord, properties: SingleRecord) {
+    switch (methodName) {
+        case GetGroups:
+            onexecuteGetGroups(parameters, properties);
             break;
         default: throw new Error("The method " + methodName + " is not supported..");
     }
@@ -465,10 +540,8 @@ function onexecuteUsedRange(parameters: SingleRecord, properties: SingleRecord) 
         var obj = a.text.map(x => {
             var obj = {};
 
-            for (var i = 0; i < x.length; i++)
-            {
-                if ((i + 1) < 21)
-                {
+            for (var i = 0; i < x.length; i++) {
+                if ((i + 1) < 21) {
                     obj["column" + (i + 1)] = x[i];
                 }
             }
@@ -487,7 +560,30 @@ function GetRangeItems(parameters: SingleRecord, properties: SingleRecord, cb) {
     if (!(typeof sheetName === "string")) throw new Error("properties[ExcelSheetName] is not of type string");
 
     var url = baseUriEndpoint + `/me/drive/items/${fileId}/workbook/worksheets('${sheetName}')/usedRange`;
-    
+
+    ExecuteRequest(url, null, "GET", function (responseText) {
+        if (typeof cb === 'function')
+            cb(responseText);
+    });
+}
+
+function onexecuteGetGroups(parameters: SingleRecord, properties: SingleRecord) {
+    GetGroupItems(parameters, properties, function (a) {
+        postResult(a.value.map(x => {
+            return {
+                [GroupId]: x.id,
+                [GroupName]: x.displayName,
+                [GroupDescription]: x.description,
+                [GroupMail]: x.mail,
+                [GroupVisibility]: x.visibility
+            };
+        }));
+    });
+}
+
+function GetGroupItems(parameters: SingleRecord, properties: SingleRecord, cb) {
+    var url = baseUriEndpoint + '/groups';
+
     ExecuteRequest(url, null, "GET", function (responseText) {
         if (typeof cb === 'function')
             cb(responseText);

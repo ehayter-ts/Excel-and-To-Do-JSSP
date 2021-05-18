@@ -90,9 +90,9 @@ class XHR {
 mock('XMLHttpRequest', XHR);
 
 onexecute({
-    objectName: 'excel',
-    methodName: 'getUsedRangeItems',
-    properties: {"fileId": "0135B642TVVZFROTARNZGKDJ6Y6WKQTSCT", "sheetName":"Sheet1"},
+    objectName: 'group',
+    methodName: 'getGroups',
+    properties: {},
     parameters: {},
     configuration: {},
     schema: {}
