@@ -37,6 +37,24 @@ const CreateFolder = "createFolder";
 const ExcelSheetName = "sheetName";
 const Column1 = "column1";
 const Column2 = "column2";
+const Column3 = "column3";
+const Column4 = "column4";
+const Column5 = "column5";
+const Column6 = "column6";
+const Column7 = "column7";
+const Column8 = "column8";
+const Column9 = "column9";
+const Column10 = "column10";
+const Column11 = "column11";
+const Column12 = "column12";
+const Column13 = "column13";
+const Column14 = "column14";
+const Column15 = "column15";
+const Column16 = "column16";
+const Column17 = "column17";
+const Column18 = "column18";
+const Column19 = "column19";
+const Column20 = "column20";
 
 const UsedRangeItems = "getUsedRangeItems";
 
@@ -146,6 +164,96 @@ ondescribe = function () {
                         displayName: "Column 2",
                         description: "Column 2",
                         type: "string"
+                    },
+                    [Column3]: {
+                        displayName: "Column 3",
+                        description: "Column 3",
+                        type: "string"
+                    },
+                    [Column4]: {
+                        displayName: "Column 4",
+                        description: "Column 4",
+                        type: "string"
+                    },
+                    [Column5]: {
+                        displayName: "Column 5",
+                        description: "Column 5",
+                        type: "string"
+                    },
+                    [Column6]: {
+                        displayName: "Column 6",
+                        description: "Column 6",
+                        type: "string"
+                    },
+                    [Column7]: {
+                        displayName: "Column 7",
+                        description: "Column 7",
+                        type: "string"
+                    },
+                    [Column8]: {
+                        displayName: "Column 8",
+                        description: "Column 8",
+                        type: "string"
+                    },
+                    [Column9]: {
+                        displayName: "Column 9",
+                        description: "Column 9",
+                        type: "string"
+                    },
+                    [Column10]: {
+                        displayName: "Column 10",
+                        description: "Column 10",
+                        type: "string"
+                    },
+                    [Column11]: {
+                        displayName: "Column 11",
+                        description: "Column 11",
+                        type: "string"
+                    },
+                    [Column12]: {
+                        displayName: "Column 12",
+                        description: "Column 12",
+                        type: "string"
+                    },
+                    [Column13]: {
+                        displayName: "Column 13",
+                        description: "Column 13",
+                        type: "string"
+                    },
+                    [Column14]: {
+                        displayName: "Column 14",
+                        description: "Column 14",
+                        type: "string"
+                    },
+                    [Column15]: {
+                        displayName: "Column 15",
+                        description: "Column 15",
+                        type: "string"
+                    },
+                    [Column16]: {
+                        displayName: "Column 16",
+                        description: "Column 16",
+                        type: "string"
+                    },
+                    [Column17]: {
+                        displayName: "Column 17",
+                        description: "Column 17",
+                        type: "string"
+                    },
+                    [Column18]: {
+                        displayName: "Column 18",
+                        description: "Column 18",
+                        type: "string"
+                    },
+                    [Column19]: {
+                        displayName: "Column 19",
+                        description: "Column 19",
+                        type: "string"
+                    },
+                    [Column20]: {
+                        displayName: "Column 20",
+                        description: "Column 20",
+                        type: "string"
                     }
                 },
                 methods: {
@@ -154,7 +262,7 @@ ondescribe = function () {
                         type: "list",
                         inputs: [FileId, ExcelSheetName],
                         requiredInputs: [FileId, ExcelSheetName],
-                        outputs: [Column1, Column2]
+                        outputs: []
                     }
                 }
             }
@@ -355,13 +463,17 @@ function CreateDriveFolder(parameters: SingleRecord, properties: SingleRecord, c
 function onexecuteUsedRange(parameters: SingleRecord, properties: SingleRecord) {
     GetRangeItems(parameters, properties, function (a) {
         var obj = a.text.map(x => {
-            return {
-                [Column1]: x[0],
-                [Column2]: x[1]
-            };
-        });
+            var obj = {};
 
-        console.log(obj);
+            for (var i = 0; i < x.length; i++)
+            {
+                if ((i + 1) < 21)
+                {
+                    obj["Column" + (i + 1)] = x[i];
+                }
+            }
+            return obj;
+        });
         
         postResult(obj);
     });
