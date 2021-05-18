@@ -262,7 +262,7 @@ ondescribe = function () {
                         type: "list",
                         inputs: [FileId, ExcelSheetName],
                         requiredInputs: [FileId, ExcelSheetName],
-                        outputs: []
+                        outputs: [Column1, Column2, Column3, Column4, Column5, Column6, Column7, Column8, Column9, Column10, Column11, Column12, Column13, Column14, Column15, Column16, Column17, Column18, Column19, Column20]
                     }
                 }
             }
