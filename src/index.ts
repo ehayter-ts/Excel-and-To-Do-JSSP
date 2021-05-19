@@ -69,6 +69,7 @@ const GroupVisibility = "groupVisibility";
 const GroupMailNickname = "groupMailNickname";
 const GroupMailEnabled = "groupMailEnabled";
 const GroupSecurityEnabled = "groupSecurityEnabled";
+const GroupOwnerEmail = "groupOwnerEmail";
 
 const GetGroups = "getGroups";
 const CreateGroup = "createGroup";
@@ -335,6 +336,11 @@ ondescribe = function () {
                         displayName: "Security Enabled",
                         description: "Security Enabled",
                         type: "boolean"
+                    },
+                    [GroupOwnerEmail]: {
+                        displayName: "Group Owner Email",
+                        description: "Group Owner Email",
+                        type: "string"
                     }
                 },
                 methods: {
@@ -348,8 +354,8 @@ ondescribe = function () {
                     [CreateGroup]: {
                         displayName: "Create Group",
                         type: "execute",
-                        inputs: [GroupName, GroupDescription, GroupVisibility, GroupMailEnabled, GroupMailNickname, GroupSecurityEnabled],
-                        requiredInputs: [GroupName, GroupMailEnabled, GroupMailNickname, GroupSecurityEnabled],
+                        inputs: [GroupName, GroupDescription, GroupVisibility, GroupMailEnabled, GroupMailNickname, GroupSecurityEnabled, GroupOwnerEmail],
+                        requiredInputs: [GroupName, GroupMailEnabled, GroupMailNickname, GroupSecurityEnabled, GroupOwnerEmail],
                         outputs: [GroupId, GroupName, GroupDescription, GroupMail, GroupVisibility]
                     }
                 }
@@ -737,18 +743,30 @@ function CreatePlannerPlanBucket(parameters: SingleRecord, properties: SingleRec
 }
 
 function onexecuteCreateGroup(parameters: SingleRecord, properties: SingleRecord) {
-    CreateNewGroup(parameters, properties, function (a) {
-        postResult({
-            [GroupId]: a.id,
-            [GroupName]: a.displayName,
-            [GroupDescription]: a.description,
-            [GroupMail]: a.mail,
-            [GroupVisibility]: a.visibility
-        });
+    GetUserForNewGroup(parameters, properties);
+}
+
+function GetUserForNewGroup(parameters: SingleRecord, properties: SingleRecord) {
+    let userEmail = properties[GroupOwnerEmail];
+
+    if (!(typeof userEmail === "string")) throw new Error("properties[GroupOwnerEmail] is not of type string");
+
+    var url = baseUriEndpoint + `/users/${userEmail}`;
+
+    ExecuteRequest(url, null, "GET", function (responseText, properties) {
+            CreateNewGroup(responseText, properties, function (a) {
+                postResult({
+                    [GroupId]: a.id,
+                    [GroupName]: a.displayName,
+                    [GroupDescription]: a.description,
+                    [GroupMail]: a.mail,
+                    [GroupVisibility]: a.visibility
+                });
+            });
     });
 }
 
-function CreateNewGroup(parameters: SingleRecord, properties: SingleRecord, cb) {
+function CreateNewGroup(userObject, properties: SingleRecord, cb) {
     let groupName = properties[GroupName];
     let groupDesc = properties[GroupDescription];
     let groupVisibility = properties[GroupVisibility];
@@ -768,7 +786,11 @@ function CreateNewGroup(parameters: SingleRecord, properties: SingleRecord, cb) 
         mailNickname: groupMailNic,
         securityEnabled: groupSecurityEnabled,
         description: groupDesc,
-        visibility: (groupVisibility != null && groupVisibility != "") ? groupVisibility : "Public"
+        visibility: (groupVisibility != null && groupVisibility != "") ? groupVisibility : "Public",
+        groupTypes: [ "Unified" ],
+        "owners@odata.bind": [
+            `https://graph.microsoft.com/v1.0/users/${userObject.id}`
+          ]
     };
 
     ExecuteRequest(url, JSON.stringify(data), "POST", function (responseText) {
