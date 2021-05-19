@@ -73,8 +73,9 @@ const GetGroups = "getGroups";
 //Planner
 const PlanTitle = "planTitle";
 const PlanOwnerGroup = "ownerGroup";
+const PlanId = "planId";
 
-const GetToDoLists = "getToDoLists";
+const CreatePlan = "createPlan";
 
 
 //OnDescribe
@@ -328,6 +329,36 @@ ondescribe = function () {
                         outputs: [GroupId, GroupName, GroupDescription, GroupMail, GroupVisibility]
                     }
                 }
+            },
+            [Planner]: {
+                displayName: "Planner",
+                description: "Planner",
+                properties: {
+                    [PlanTitle]: {
+                        displayName: "Planner Title",
+                        description: "Planner Title",
+                        type: "string"
+                    },
+                    [PlanOwnerGroup]: {
+                        displayName: "Owner Group ID",
+                        description: "Owner Group ID",
+                        type: "string"
+                    },
+                    [PlanId]: {
+                        displayName: "Plan ID",
+                        description: "Plan ID",
+                        type: "string"
+                    }
+                },
+                methods: {
+                    [CreatePlan]: {
+                        displayName: "Create Plan",
+                        type: "execute",
+                        inputs: [PlanTitle, PlanOwnerGroup],
+                        requiredInputs: [PlanTitle, PlanOwnerGroup],
+                        outputs: [PlanId]
+                    }
+                }
             }
         }
 
@@ -345,6 +376,9 @@ onexecute = function ({ objectName, methodName, parameters, properties }) {
             break;
         case Group:
             onexecuteGroup(methodName, parameters, properties);
+            break;
+        case Planner:
+            onexecutePlanner(methodName, parameters, properties);
             break;
         default: throw new Error("The object " + objectName + " is not supported.");
     }
@@ -375,6 +409,15 @@ function onexecuteGroup(methodName: string, parameters: SingleRecord, properties
     switch (methodName) {
         case GetGroups:
             onexecuteGetGroups(parameters, properties);
+            break;
+        default: throw new Error("The method " + methodName + " is not supported..");
+    }
+}
+
+function onexecutePlanner(methodName: string, parameters: SingleRecord, properties: SingleRecord) {
+    switch (methodName) {
+        case CreatePlan:
+            onexecuteCreatePlan(parameters, properties);
             break;
         default: throw new Error("The method " + methodName + " is not supported..");
     }
@@ -585,6 +628,34 @@ function GetGroupItems(parameters: SingleRecord, properties: SingleRecord, cb) {
     var url = baseUriEndpoint + '/groups';
 
     ExecuteRequest(url, null, "GET", function (responseText) {
+        if (typeof cb === 'function')
+            cb(responseText);
+    });
+}
+
+function onexecuteCreatePlan(parameters: SingleRecord, properties: SingleRecord) {
+    CreatePlannerPlan(parameters, properties, function (a) {
+        postResult({
+            [PlanId]: a.id
+        });
+    });
+}
+
+function CreatePlannerPlan(parameters: SingleRecord, properties: SingleRecord, cb) {
+    let planTitle = properties[PlanTitle];
+    let planGroup = properties[PlanOwnerGroup];
+
+    if (!(typeof planTitle === "string")) throw new Error("properties[PlanTitle] is not of type string");
+    if (!(typeof planGroup === "string")) throw new Error("properties[PlanOwnerGroup] is not of type string");
+
+    var url = baseUriEndpoint + '/planner/plans';
+
+    var data = {
+        title: planTitle,
+        owner: planGroup
+    };
+
+    ExecuteRequest(url, JSON.stringify(data), "POST", function (responseText) {
         if (typeof cb === 'function')
             cb(responseText);
     });
