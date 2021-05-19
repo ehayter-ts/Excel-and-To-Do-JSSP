@@ -66,8 +66,12 @@ const GroupName = "groupName";
 const GroupDescription = "groupDescription";
 const GroupMail = "groupMail";
 const GroupVisibility = "groupVisibility";
+const GroupMailNickname = "groupMailNickname";
+const GroupMailEnabled = "groupMailEnabled";
+const GroupSecurityEnabled = "groupSecurityEnabled";
 
 const GetGroups = "getGroups";
+const CreateGroup = "createGroup";
 
 //
 //Planner
@@ -317,10 +321,20 @@ ondescribe = function () {
                         description: "Group Visibility",
                         type: "string"
                     },
-                    [FileCreatedBy]: {
-                        displayName: "File Created By",
-                        description: "File Created By",
+                    [GroupMailEnabled]: {
+                        displayName: "Mail Enabled",
+                        description: "Mail Enabled",
+                        type: "boolean"
+                    },
+                    [GroupMailNickname]: {
+                        displayName: "Mail Nickname",
+                        description: "Mail Nickname",
                         type: "string"
+                    },
+                    [GroupSecurityEnabled]: {
+                        displayName: "Security Enabled",
+                        description: "Security Enabled",
+                        type: "boolean"
                     }
                 },
                 methods: {
@@ -329,6 +343,13 @@ ondescribe = function () {
                         type: "list",
                         inputs: [],
                         requiredInputs: [],
+                        outputs: [GroupId, GroupName, GroupDescription, GroupMail, GroupVisibility]
+                    },
+                    [CreateGroup]: {
+                        displayName: "Create Group",
+                        type: "execute",
+                        inputs: [GroupName, GroupDescription, GroupVisibility, GroupMailEnabled, GroupMailNickname, GroupSecurityEnabled],
+                        requiredInputs: [GroupName, GroupMailEnabled, GroupMailNickname, GroupSecurityEnabled],
                         outputs: [GroupId, GroupName, GroupDescription, GroupMail, GroupVisibility]
                     }
                 }
@@ -429,6 +450,9 @@ function onexecuteGroup(methodName: string, parameters: SingleRecord, properties
     switch (methodName) {
         case GetGroups:
             onexecuteGetGroups(parameters, properties);
+            break;
+        case CreateGroup:
+            onexecuteCreateGroup(parameters, properties);
             break;
         default: throw new Error("The method " + methodName + " is not supported..");
     }
@@ -704,6 +728,47 @@ function CreatePlannerPlanBucket(parameters: SingleRecord, properties: SingleRec
     var data = {
         name: bucketName,
         planId: planId
+    };
+
+    ExecuteRequest(url, JSON.stringify(data), "POST", function (responseText) {
+        if (typeof cb === 'function')
+            cb(responseText);
+    });
+}
+
+function onexecuteCreateGroup(parameters: SingleRecord, properties: SingleRecord) {
+    CreateNewGroup(parameters, properties, function (a) {
+        postResult({
+            [GroupId]: a.id,
+            [GroupName]: a.displayName,
+            [GroupDescription]: a.description,
+            [GroupMail]: a.mail,
+            [GroupVisibility]: a.visibility
+        });
+    });
+}
+
+function CreateNewGroup(parameters: SingleRecord, properties: SingleRecord, cb) {
+    let groupName = properties[GroupName];
+    let groupDesc = properties[GroupDescription];
+    let groupVisibility = properties[GroupVisibility];
+    let groupMailEnabled = properties[GroupMailEnabled];
+    let groupMailNic = properties[GroupMailNickname];
+    let groupSecurityEnabled = properties[GroupSecurityEnabled];
+
+
+    if (!(typeof groupName === "string")) throw new Error("properties[GroupName] is not of type string");
+    if (!(typeof groupMailNic === "string")) throw new Error("properties[GroupMailNickname] is not of type string");
+
+    var url = baseUriEndpoint + '/groups';
+
+    var data = {
+        displayName: groupName,
+        mailEnabled: groupMailEnabled,
+        mailNickname: groupMailNic,
+        securityEnabled: groupSecurityEnabled,
+        description: groupDesc,
+        visibility: (groupVisibility != null && groupVisibility != "") ? groupVisibility : "Public"
     };
 
     ExecuteRequest(url, JSON.stringify(data), "POST", function (responseText) {
