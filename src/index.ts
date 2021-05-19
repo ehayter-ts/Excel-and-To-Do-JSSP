@@ -356,6 +356,11 @@ ondescribe = function () {
                         displayName: "Bucket Name",
                         description: "Bucket Name",
                         type: "string"
+                    },
+                    [BucketId]: {
+                        displayName: "Bucket ID",
+                        description: "Bucket ID",
+                        type: "string"
                     }
                 },
                 methods: {
