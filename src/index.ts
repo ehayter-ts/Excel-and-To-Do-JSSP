@@ -15,6 +15,7 @@ const Drive = "drive";
 const Excel = "excel";
 const Group = "group";
 const Planner = "planner";
+const User = "user";
 
 //
 //Drive
@@ -85,6 +86,16 @@ const BucketId = "bucketId";
 const CreatePlan = "createPlan";
 const CreateBucket = "createBucket";
 
+//
+//User
+const UserEmail = "userEmail";
+const UserId = "userId";
+const UserDisplayName = "userDisplayName";
+const UserGivenName = "userGivenName";
+const UserLastName = "userLastName";
+const UserJobTitle = "userJobTitle";
+
+const GetUserByEmail = "getUserByEmail";
 
 //OnDescribe
 ondescribe = function () {
@@ -406,6 +417,51 @@ ondescribe = function () {
                         outputs: [BucketId]
                     }
                 }
+            },
+            [User]: {
+                displayName: "User",
+                description: "User",
+                properties: {
+                    [UserEmail]: {
+                        displayName: "User Email",
+                        description: "User Email",
+                        type: "string"
+                    },
+                    [UserId]: {
+                        displayName: "User ID",
+                        description: "User ID",
+                        type: "string"
+                    },
+                    [UserDisplayName]: {
+                        displayName: "User Display Name",
+                        description: "User Display Name",
+                        type: "string"
+                    },
+                    [UserGivenName]: {
+                        displayName: "User Given Name",
+                        description: "User Given Name",
+                        type: "string"
+                    },
+                    [UserLastName]: {
+                        displayName: "User Last Name",
+                        description: "User Last Name",
+                        type: "string"
+                    },
+                    [UserJobTitle]: {
+                        displayName: "User Job Title",
+                        description: "User Job Title",
+                        type: "string"
+                    }
+                },
+                methods: {
+                    [GetUserByEmail]: {
+                        displayName: "Get User by Email",
+                        type: "read",
+                        inputs: [UserEmail],
+                        requiredInputs: [UserEmail],
+                        outputs: [UserId, UserDisplayName, UserEmail, UserGivenName, UserLastName, UserJobTitle]
+                    }
+                }
             }
         }
 
@@ -426,6 +482,9 @@ onexecute = function ({ objectName, methodName, parameters, properties }) {
             break;
         case Planner:
             onexecutePlanner(methodName, parameters, properties);
+            break;
+        case User:
+            onexecuteUser(methodName, parameters, properties);
             break;
         default: throw new Error("The object " + objectName + " is not supported.");
     }
@@ -471,6 +530,15 @@ function onexecutePlanner(methodName: string, parameters: SingleRecord, properti
             break;
         case CreateBucket:
             onexecuteCreateBucket(parameters, properties);
+            break;
+        default: throw new Error("The method " + methodName + " is not supported..");
+    }
+}
+
+function onexecuteUser(methodName: string, parameters: SingleRecord, properties: SingleRecord) {
+    switch (methodName) {
+        case GetUserByEmail:
+            onexecuteGetUser(parameters, properties);
             break;
         default: throw new Error("The method " + methodName + " is not supported..");
     }
@@ -777,13 +845,39 @@ function CreateNewGroup(parameters: SingleRecord, properties: SingleRecord, cb) 
         securityEnabled: groupSecurityEnabled,
         description: groupDesc,
         visibility: (groupVisibility != null && groupVisibility != "") ? groupVisibility : "Public",
-        groupTypes: [ "Unified" ],
+        groupTypes: ["Unified"],
         "owners@odata.bind": [
             `https://graph.microsoft.com/v1.0/users/${groupOwnerId}`
-          ]
+        ]
     };
 
     ExecuteRequest(url, JSON.stringify(data), "POST", function (responseText) {
+        if (typeof cb === 'function')
+            cb(responseText);
+    });
+}
+
+function onexecuteGetUser(parameters: SingleRecord, properties: SingleRecord) {
+    GetGroupUserByEmail(parameters, properties, function (a) {
+        postResult({
+                [UserId]: a.id,
+                [UserDisplayName]: a.displayName,
+                [UserEmail]: a.mail,
+                [UserGivenName]: a.givenName,
+                [UserLastName]: a.surname,
+                [UserJobTitle]: a.jobTitle
+            });
+    });
+}
+
+function GetGroupUserByEmail(parameters: SingleRecord, properties: SingleRecord, cb) {
+    let userMail = properties[UserEmail];
+
+    if (!(typeof userMail === "string")) throw new Error("properties[UserEmail] is not of type string");
+
+    var url = baseUriEndpoint + `/users/${userMail}`;
+
+    ExecuteRequest(url, null, "GET", function (responseText) {
         if (typeof cb === 'function')
             cb(responseText);
     });
