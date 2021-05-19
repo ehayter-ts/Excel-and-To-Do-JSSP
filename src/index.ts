@@ -74,6 +74,7 @@ const GroupOwnerId = "groupOwnerId";
 
 const GetGroups = "getGroups";
 const CreateGroup = "createGroup";
+const AddMemberToGroup = "addMemberToGroup";
 
 //
 //Planner
@@ -349,8 +350,13 @@ ondescribe = function () {
                         type: "boolean"
                     },
                     [GroupOwnerId]: {
-                        displayName: "Group Owner Id",
-                        description: "Group Owner Id",
+                        displayName: "Group Owner ID",
+                        description: "Group Owner ID",
+                        type: "string"
+                    },
+                    [UserId]: {
+                        displayName: "User ID",
+                        description: "User ID",
                         type: "string"
                     }
                 },
@@ -368,6 +374,13 @@ ondescribe = function () {
                         inputs: [GroupName, GroupDescription, GroupVisibility, GroupMailEnabled, GroupMailNickname, GroupSecurityEnabled, GroupOwnerId],
                         requiredInputs: [GroupName, GroupMailEnabled, GroupMailNickname, GroupSecurityEnabled, GroupOwnerId],
                         outputs: [GroupId, GroupName, GroupDescription, GroupMail, GroupVisibility]
+                    },
+                    [AddMemberToGroup]: {
+                        displayName: "Add Member to Group",
+                        type: "execute",
+                        inputs: [GroupId, UserId],
+                        requiredInputs: [GroupId, UserId],
+                        outputs: []
                     }
                 }
             },
@@ -518,6 +531,9 @@ function onexecuteGroup(methodName: string, parameters: SingleRecord, properties
             break;
         case CreateGroup:
             onexecuteCreateGroup(parameters, properties);
+            break;
+        case CreateGroup:
+            onexecuteAddUserToGroup(parameters, properties);
             break;
         default: throw new Error("The method " + methodName + " is not supported..");
     }
@@ -860,13 +876,13 @@ function CreateNewGroup(parameters: SingleRecord, properties: SingleRecord, cb) 
 function onexecuteGetUser(parameters: SingleRecord, properties: SingleRecord) {
     GetGroupUserByEmail(parameters, properties, function (a) {
         postResult({
-                [UserId]: a.id,
-                [UserDisplayName]: a.displayName,
-                [UserEmail]: a.mail,
-                [UserGivenName]: a.givenName,
-                [UserLastName]: a.surname,
-                [UserJobTitle]: a.jobTitle
-            });
+            [UserId]: a.id,
+            [UserDisplayName]: a.displayName,
+            [UserEmail]: a.mail,
+            [UserGivenName]: a.givenName,
+            [UserLastName]: a.surname,
+            [UserJobTitle]: a.jobTitle
+        });
     });
 }
 
@@ -878,6 +894,31 @@ function GetGroupUserByEmail(parameters: SingleRecord, properties: SingleRecord,
     var url = baseUriEndpoint + `/users/${userMail}`;
 
     ExecuteRequest(url, null, "GET", function (responseText) {
+        if (typeof cb === 'function')
+            cb(responseText);
+    });
+}
+
+function onexecuteAddUserToGroup(parameters: SingleRecord, properties: SingleRecord) {
+    AddUser(parameters, properties, function (a) {
+        postResult({});
+    });
+}
+
+function AddUser(parameters: SingleRecord, properties: SingleRecord, cb) {
+    let groupId = properties[GroupId];
+    let userId = properties[UserId];
+
+    if (!(typeof groupId === "string")) throw new Error("properties[GroupId] is not of type string");
+    if (!(typeof userId === "string")) throw new Error("properties[UserId] is not of type string");
+
+    var url = baseUriEndpoint + `/groups/${groupId}/members/$ref`;
+
+    var data = {
+        "@odata.id": `https://graph.microsoft.com/v1.0/directoryObjects/${userId}`
+    };
+
+    ExecuteRequest(url, JSON.stringify(data), "POST", function (responseText) {
         if (typeof cb === 'function')
             cb(responseText);
     });
