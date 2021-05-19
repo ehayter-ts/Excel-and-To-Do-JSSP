@@ -69,7 +69,7 @@ const GroupVisibility = "groupVisibility";
 const GroupMailNickname = "groupMailNickname";
 const GroupMailEnabled = "groupMailEnabled";
 const GroupSecurityEnabled = "groupSecurityEnabled";
-const GroupOwnerEmail = "groupOwnerEmail";
+const GroupOwnerId = "groupOwnerId";
 
 const GetGroups = "getGroups";
 const CreateGroup = "createGroup";
@@ -337,9 +337,9 @@ ondescribe = function () {
                         description: "Security Enabled",
                         type: "boolean"
                     },
-                    [GroupOwnerEmail]: {
-                        displayName: "Group Owner Email",
-                        description: "Group Owner Email",
+                    [GroupOwnerId]: {
+                        displayName: "Group Owner Id",
+                        description: "Group Owner Id",
                         type: "string"
                     }
                 },
@@ -354,8 +354,8 @@ ondescribe = function () {
                     [CreateGroup]: {
                         displayName: "Create Group",
                         type: "execute",
-                        inputs: [GroupName, GroupDescription, GroupVisibility, GroupMailEnabled, GroupMailNickname, GroupSecurityEnabled, GroupOwnerEmail],
-                        requiredInputs: [GroupName, GroupMailEnabled, GroupMailNickname, GroupSecurityEnabled, GroupOwnerEmail],
+                        inputs: [GroupName, GroupDescription, GroupVisibility, GroupMailEnabled, GroupMailNickname, GroupSecurityEnabled, GroupOwnerId],
+                        requiredInputs: [GroupName, GroupMailEnabled, GroupMailNickname, GroupSecurityEnabled, GroupOwnerId],
                         outputs: [GroupId, GroupName, GroupDescription, GroupMail, GroupVisibility]
                     }
                 }
@@ -743,40 +743,30 @@ function CreatePlannerPlanBucket(parameters: SingleRecord, properties: SingleRec
 }
 
 function onexecuteCreateGroup(parameters: SingleRecord, properties: SingleRecord) {
-    GetUserForNewGroup(parameters, properties);
-}
-
-function GetUserForNewGroup(parameters: SingleRecord, properties: SingleRecord) {
-    let userEmail = properties[GroupOwnerEmail];
-
-    if (!(typeof userEmail === "string")) throw new Error("properties[GroupOwnerEmail] is not of type string");
-
-    var url = baseUriEndpoint + `/users/${userEmail}`;
-
-    ExecuteRequest(url, null, "GET", function (responseText, properties) {
-            CreateNewGroup(responseText, properties, function (a) {
-                postResult({
-                    [GroupId]: a.id,
-                    [GroupName]: a.displayName,
-                    [GroupDescription]: a.description,
-                    [GroupMail]: a.mail,
-                    [GroupVisibility]: a.visibility
-                });
-            });
+    CreateNewGroup(parameters, properties, function (a) {
+        postResult({
+            [GroupId]: a.id,
+            [GroupName]: a.displayName,
+            [GroupDescription]: a.description,
+            [GroupMail]: a.mail,
+            [GroupVisibility]: a.visibility
+        });
     });
 }
 
-function CreateNewGroup(userObject, properties: SingleRecord, cb) {
+function CreateNewGroup(parameters: SingleRecord, properties: SingleRecord, cb) {
     let groupName = properties[GroupName];
     let groupDesc = properties[GroupDescription];
     let groupVisibility = properties[GroupVisibility];
     let groupMailEnabled = properties[GroupMailEnabled];
     let groupMailNic = properties[GroupMailNickname];
     let groupSecurityEnabled = properties[GroupSecurityEnabled];
+    let groupOwnerId = properties[GroupOwnerId];
 
 
     if (!(typeof groupName === "string")) throw new Error("properties[GroupName] is not of type string");
     if (!(typeof groupMailNic === "string")) throw new Error("properties[GroupMailNickname] is not of type string");
+    if (!(typeof groupOwnerId === "string")) throw new Error("properties[GroupOwnerId] is not of type string");
 
     var url = baseUriEndpoint + '/groups';
 
@@ -789,7 +779,7 @@ function CreateNewGroup(userObject, properties: SingleRecord, cb) {
         visibility: (groupVisibility != null && groupVisibility != "") ? groupVisibility : "Public",
         groupTypes: [ "Unified" ],
         "owners@odata.bind": [
-            `https://graph.microsoft.com/v1.0/users/${userObject.id}`
+            `https://graph.microsoft.com/v1.0/users/${groupOwnerId}`
           ]
     };
 
