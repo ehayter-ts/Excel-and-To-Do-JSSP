@@ -532,7 +532,7 @@ function onexecuteGroup(methodName: string, parameters: SingleRecord, properties
         case CreateGroup:
             onexecuteCreateGroup(parameters, properties);
             break;
-        case CreateGroup:
+        case AddMemberToGroup:
             onexecuteAddUserToGroup(parameters, properties);
             break;
         default: throw new Error("The method " + methodName + " is not supported..");
