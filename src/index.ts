@@ -74,8 +74,11 @@ const GetGroups = "getGroups";
 const PlanTitle = "planTitle";
 const PlanOwnerGroup = "ownerGroup";
 const PlanId = "planId";
+const BucketName = "bucketName";
+const BucketId = "bucketId";
 
 const CreatePlan = "createPlan";
+const CreateBucket = "createBucket";
 
 
 //OnDescribe
@@ -348,6 +351,11 @@ ondescribe = function () {
                         displayName: "Plan ID",
                         description: "Plan ID",
                         type: "string"
+                    },
+                    [BucketName]: {
+                        displayName: "Bucket Name",
+                        description: "Bucket Name",
+                        type: "string"
                     }
                 },
                 methods: {
@@ -357,6 +365,13 @@ ondescribe = function () {
                         inputs: [PlanTitle, PlanOwnerGroup],
                         requiredInputs: [PlanTitle, PlanOwnerGroup],
                         outputs: [PlanId]
+                    },
+                    [CreateBucket]: {
+                        displayName: "Create Bucket",
+                        type: "execute",
+                        inputs: [BucketName, PlanId],
+                        requiredInputs: [BucketName, PlanId],
+                        outputs: [BucketId]
                     }
                 }
             }
@@ -418,6 +433,9 @@ function onexecutePlanner(methodName: string, parameters: SingleRecord, properti
     switch (methodName) {
         case CreatePlan:
             onexecuteCreatePlan(parameters, properties);
+            break;
+        case CreateBucket:
+            onexecuteCreateBucket(parameters, properties);
             break;
         default: throw new Error("The method " + methodName + " is not supported..");
     }
@@ -653,6 +671,34 @@ function CreatePlannerPlan(parameters: SingleRecord, properties: SingleRecord, c
     var data = {
         title: planTitle,
         owner: planGroup
+    };
+
+    ExecuteRequest(url, JSON.stringify(data), "POST", function (responseText) {
+        if (typeof cb === 'function')
+            cb(responseText);
+    });
+}
+
+function onexecuteCreateBucket(parameters: SingleRecord, properties: SingleRecord) {
+    CreatePlannerPlanBucket(parameters, properties, function (a) {
+        postResult({
+            [BucketId]: a.id
+        });
+    });
+}
+
+function CreatePlannerPlanBucket(parameters: SingleRecord, properties: SingleRecord, cb) {
+    let bucketName = properties[BucketName];
+    let planId = properties[PlanId];
+
+    if (!(typeof bucketName === "string")) throw new Error("properties[BucketName] is not of type string");
+    if (!(typeof planId === "string")) throw new Error("properties[PlanId] is not of type string");
+
+    var url = baseUriEndpoint + '/planner/buckets';
+
+    var data = {
+        name: bucketName,
+        planId: planId
     };
 
     ExecuteRequest(url, JSON.stringify(data), "POST", function (responseText) {
