@@ -87,6 +87,7 @@ const BucketId = "bucketId";
 const CreatePlan = "createPlan";
 const CreateBucket = "createBucket";
 const GetGroupPlans = "getGroupPlans";
+const GetPlanBuckets = "getPlanBuckets";
 
 //
 //User
@@ -436,6 +437,13 @@ ondescribe = function () {
                         inputs: [PlanOwnerGroup],
                         requiredInputs: [PlanOwnerGroup],
                         outputs: [PlanId, PlanTitle]
+                    },
+                    [GetGroupPlans]: {
+                        displayName: "Get Plan Buckets",
+                        type: "list",
+                        inputs: [PlanId],
+                        requiredInputs: [PlanId],
+                        outputs: [BucketId, BucketName]
                     }
                 }
             },
@@ -557,6 +565,9 @@ function onexecutePlanner(methodName: string, parameters: SingleRecord, properti
             break;
         case GetGroupPlans:
             onexecuteGetPlans(parameters, properties);
+            break;
+        case GetPlanBuckets:
+            onexecuteGetBuckets(parameters, properties);
             break;
         default: throw new Error("The method " + methodName + " is not supported..");
     }
@@ -950,8 +961,32 @@ function GetPlans(parameters: SingleRecord, properties: SingleRecord, cb) {
     let groupId = properties[PlanOwnerGroup];
 
     if (!(typeof groupId === "string")) throw new Error("properties[PlanOwnerGroup] is not of type string");
-    
+
     var url = baseUriEndpoint + `/groups/${groupId}/planner/plans`;
+
+    ExecuteRequest(url, null, "GET", function (responseText) {
+        if (typeof cb === 'function')
+            cb(responseText);
+    });
+}
+
+function onexecuteGetBuckets(parameters: SingleRecord, properties: SingleRecord) {
+    GetBuckets(parameters, properties, function (a) {
+        postResult(a.value.map(x => {
+            return {
+                [BucketId]: x.id,
+                [BucketName]: x.name
+            };
+        }));
+    });
+}
+
+function GetBuckets(parameters: SingleRecord, properties: SingleRecord, cb) {
+    let planId = properties[PlanId];
+
+    if (!(typeof planId === "string")) throw new Error("properties[PlanId] is not of type string");
+
+    var url = baseUriEndpoint + `/planner/plans/${planId}/buckets`;
 
     ExecuteRequest(url, null, "GET", function (responseText) {
         if (typeof cb === 'function')
