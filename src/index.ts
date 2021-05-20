@@ -83,11 +83,16 @@ const PlanOwnerGroup = "ownerGroup";
 const PlanId = "planId";
 const BucketName = "bucketName";
 const BucketId = "bucketId";
+const TaskId = "taskId";
+const TaskTitle = "taskTitle";
+const TaskUserId = "taskUserId";
+const TaskDueDate = "taskDueDate";
 
 const CreatePlan = "createPlan";
 const CreateBucket = "createBucket";
 const GetGroupPlans = "getGroupPlans";
 const GetPlanBuckets = "getPlanBuckets";
+const CreateTask = "createTask";
 
 //
 //User
@@ -414,6 +419,26 @@ ondescribe = function () {
                         displayName: "Bucket ID",
                         description: "Bucket ID",
                         type: "string"
+                    },
+                    [TaskTitle]: {
+                        displayName: "Task Title",
+                        description: "Task Title",
+                        type: "string"
+                    },
+                    [TaskUserId]: {
+                        displayName: "Task Assigned To User ID",
+                        description: "Task Assigned To User ID",
+                        type: "string"
+                    },
+                    [TaskDueDate]: {
+                        displayName: "Task Due Date",
+                        description: "Task Due Date",
+                        type: "dateTime"
+                    },
+                    [TaskId]: {
+                        displayName: "Task ID",
+                        description: "Task ID",
+                        type: "string"
                     }
                 },
                 methods: {
@@ -444,6 +469,13 @@ ondescribe = function () {
                         inputs: [PlanId],
                         requiredInputs: [PlanId],
                         outputs: [BucketId, BucketName]
+                    },
+                    [CreateTask]: {
+                        displayName: "Create Task",
+                        type: "execute",
+                        inputs: [PlanId, TaskTitle, TaskUserId, TaskDueDate],
+                        requiredInputs: [PlanId, TaskTitle, TaskUserId],
+                        outputs: [TaskId]
                     }
                 }
             },
@@ -568,6 +600,9 @@ function onexecutePlanner(methodName: string, parameters: SingleRecord, properti
             break;
         case GetPlanBuckets:
             onexecuteGetBuckets(parameters, properties);
+            break;
+        case CreateTask:
+            onexecuteCreateTask(parameters, properties);
             break;
         default: throw new Error("The method " + methodName + " is not supported..");
     }
@@ -989,6 +1024,46 @@ function GetBuckets(parameters: SingleRecord, properties: SingleRecord, cb) {
     var url = baseUriEndpoint + `/planner/plans/${planId}/buckets`;
 
     ExecuteRequest(url, null, "GET", function (responseText) {
+        if (typeof cb === 'function')
+            cb(responseText);
+    });
+}
+
+function onexecuteCreateTask(parameters: SingleRecord, properties: SingleRecord) {
+    CreatePlanTask(parameters, properties, function (a) {
+        postResult({
+            [TaskId]: a.id
+        });
+    });
+}
+
+function CreatePlanTask(parameters: SingleRecord, properties: SingleRecord, cb) {
+    let planId = properties[PlanId];
+    let taskUserId = properties[TaskUserId];
+    let taskTitle = properties[TaskTitle];
+    let taskDueDate = properties[TaskDueDate];
+    let bucketId = properties[BucketId];
+
+    if (!(typeof planId === "string")) throw new Error("properties[PlanId] is not of type string");
+    if (!(typeof taskUserId === "string")) throw new Error("properties[TaskUserId] is not of type string");
+    if (!(typeof taskTitle === "string")) throw new Error("properties[TaskTitle] is not of type string");
+
+    var url = baseUriEndpoint + '/planner/tasks';
+
+    var data = `{
+        planId: ${planId},
+        title: ${taskTitle},
+        dueDateTime: ${taskDueDate},
+        bucketId: ${bucketId},
+        assignments: {
+            "${taskUserId}": {
+                "@odata.type": "#microsoft.graph.plannerAssignment",
+                "orderHint": " !"
+            }
+        }
+    }`;
+
+    ExecuteRequest(url, data, "POST", function (responseText) {
         if (typeof cb === 'function')
             cb(responseText);
     });
