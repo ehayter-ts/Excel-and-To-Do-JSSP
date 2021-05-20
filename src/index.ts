@@ -438,7 +438,7 @@ ondescribe = function () {
                         requiredInputs: [PlanOwnerGroup],
                         outputs: [PlanId, PlanTitle]
                     },
-                    [GetGroupPlans]: {
+                    [GetPlanBuckets]: {
                         displayName: "Get Plan Buckets",
                         type: "list",
                         inputs: [PlanId],
