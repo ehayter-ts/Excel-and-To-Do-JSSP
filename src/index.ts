@@ -1050,7 +1050,7 @@ function CreatePlanTask(parameters: SingleRecord, properties: SingleRecord, cb) 
 
     var url = baseUriEndpoint + '/planner/tasks';
 
-    var data = `"{\"planId\":\"${planId}\",\"title\":\"${taskTitle}\",\"dueDateTime\":\"${taskDueDate}\",\"bucketId\":\"${bucketId}\",\"assignments\":{\"${taskUserId}\":{\"@odata.type\":\"#microsoft.graph.plannerAssignment\",\"orderHint\":\" !\"}}}"`;
+    var data = `{\"planId\":\"${planId}\",\"title\":\"${taskTitle}\",\"dueDateTime\":\"${taskDueDate}\",\"bucketId\":\"${bucketId}\",\"assignments\":{\"${taskUserId}\":{\"@odata.type\":\"#microsoft.graph.plannerAssignment\",\"orderHint\":\" !\"}}}`;
 
     ExecuteRequest(url, data, "POST", function (responseText) {
         if (typeof cb === 'function')
