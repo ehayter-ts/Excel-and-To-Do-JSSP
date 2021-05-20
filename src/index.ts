@@ -1046,7 +1046,7 @@ function CreatePlanTask(parameters: SingleRecord, properties: SingleRecord, cb) 
 
     if (taskDueDate != "")
     {
-        taskDueDate = new Date(taskDueDate).toLocaleDateString();
+        taskDueDate = new Date(taskDueDate).toISOString().split("T")[0];
     }
 
     if (!(typeof planId === "string")) throw new Error("properties[PlanId] is not of type string");
