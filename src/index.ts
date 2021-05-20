@@ -1041,8 +1041,13 @@ function CreatePlanTask(parameters: SingleRecord, properties: SingleRecord, cb) 
     let planId = properties[PlanId];
     let taskUserId = properties[TaskUserId];
     let taskTitle = properties[TaskTitle];
-    let taskDueDate = properties[TaskDueDate];
+    let taskDueDate = properties[TaskDueDate] != null && properties[TaskDueDate] != "" ? properties[TaskDueDate].toString() : "";
     let bucketId = properties[BucketId];
+
+    if (taskDueDate != "")
+    {
+        taskDueDate = new Date(taskDueDate).toLocaleDateString();
+    }
 
     if (!(typeof planId === "string")) throw new Error("properties[PlanId] is not of type string");
     if (!(typeof taskUserId === "string")) throw new Error("properties[TaskUserId] is not of type string");

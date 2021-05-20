@@ -90,9 +90,9 @@ class XHR {
 mock('XMLHttpRequest', XHR);
 
 onexecute({
-    objectName: 'group',
-    methodName: 'getGroups',
-    properties: {},
+    objectName: 'planner',
+    methodName: 'createTask',
+    properties: {"planId":"GnZjf934ak-rHi4FlkN4gpYABU-w", "taskUserId":"e1c3de54-1cab-4242-9ac6-584d3447cd5f", "taskTitle":"Test from K2", "bucketId":"eIIgM_5w1EyJIIcYi-KbTpYAMHgG", "taskDueDate":"2021-06-02"},
     parameters: {},
     configuration: {},
     schema: {}
