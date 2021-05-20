@@ -555,7 +555,7 @@ function onexecutePlanner(methodName: string, parameters: SingleRecord, properti
         case CreateBucket:
             onexecuteCreateBucket(parameters, properties);
             break;
-        case CreateBucket:
+        case GetGroupPlans:
             onexecuteGetPlans(parameters, properties);
             break;
         default: throw new Error("The method " + methodName + " is not supported..");
