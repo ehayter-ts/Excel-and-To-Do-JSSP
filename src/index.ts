@@ -86,6 +86,7 @@ const BucketId = "bucketId";
 
 const CreatePlan = "createPlan";
 const CreateBucket = "createBucket";
+const GetGroupPlans = "getGroupPlans";
 
 //
 //User
@@ -428,6 +429,13 @@ ondescribe = function () {
                         inputs: [BucketName, PlanId],
                         requiredInputs: [BucketName, PlanId],
                         outputs: [BucketId]
+                    },
+                    [GetGroupPlans]: {
+                        displayName: "Get Group Plans",
+                        type: "list",
+                        inputs: [PlanOwnerGroup],
+                        requiredInputs: [PlanOwnerGroup],
+                        outputs: [PlanId, PlanTitle]
                     }
                 }
             },
@@ -546,6 +554,9 @@ function onexecutePlanner(methodName: string, parameters: SingleRecord, properti
             break;
         case CreateBucket:
             onexecuteCreateBucket(parameters, properties);
+            break;
+        case CreateBucket:
+            onexecuteGetPlans(parameters, properties);
             break;
         default: throw new Error("The method " + methodName + " is not supported..");
     }
@@ -919,6 +930,30 @@ function AddUser(parameters: SingleRecord, properties: SingleRecord, cb) {
     };
 
     ExecuteRequest(url, JSON.stringify(data), "POST", function (responseText) {
+        if (typeof cb === 'function')
+            cb(responseText);
+    });
+}
+
+function onexecuteGetPlans(parameters: SingleRecord, properties: SingleRecord) {
+    GetPlans(parameters, properties, function (a) {
+        postResult(a.value.map(x => {
+            return {
+                [PlanId]: x.id,
+                [PlanTitle]: x.title
+            };
+        }));
+    });
+}
+
+function GetPlans(parameters: SingleRecord, properties: SingleRecord, cb) {
+    let groupId = properties[PlanOwnerGroup];
+
+    if (!(typeof groupId === "string")) throw new Error("properties[PlanOwnerGroup] is not of type string");
+    
+    var url = baseUriEndpoint + `/groups/${groupId}/planner/plans`;
+
+    ExecuteRequest(url, null, "GET", function (responseText) {
         if (typeof cb === 'function')
             cb(responseText);
     });
