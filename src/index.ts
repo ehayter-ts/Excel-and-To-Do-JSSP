@@ -57,8 +57,10 @@ const Column17 = "column17";
 const Column18 = "column18";
 const Column19 = "column19";
 const Column20 = "column20";
+const ColumnName = "columnName";
 
 const UsedRangeItems = "getUsedRangeItems";
+const GetColumnNames = "getColumnNames";
 
 //
 //Group
@@ -300,6 +302,11 @@ ondescribe = function () {
                         displayName: "Column 20",
                         description: "Column 20",
                         type: "string"
+                    },
+                    [ColumnName]: {
+                        displayName: "Column Count",
+                        description: "Column Count",
+                        type: "string"
                     }
                 },
                 methods: {
@@ -309,6 +316,13 @@ ondescribe = function () {
                         inputs: [FileId, ExcelSheetName],
                         requiredInputs: [FileId, ExcelSheetName],
                         outputs: [Column1, Column2, Column3, Column4, Column5, Column6, Column7, Column8, Column9, Column10, Column11, Column12, Column13, Column14, Column15, Column16, Column17, Column18, Column19, Column20]
+                    },
+                    [GetColumnNames]: {
+                        displayName: "Get Column Counts",
+                        type: "list",
+                        inputs: [FileId, ExcelSheetName],
+                        requiredInputs: [FileId, ExcelSheetName],
+                        outputs: [ColumnName]
                     }
                 }
             },
@@ -568,6 +582,9 @@ function onexecuteExcel(methodName: string, parameters: SingleRecord, properties
         case UsedRangeItems:
             onexecuteUsedRange(parameters, properties);
             break;
+        case GetColumnNames:
+            onexecuteGetColumnNames(parameters, properties);
+            break;
         default: throw new Error("The method " + methodName + " is not supported..");
     }
 }
@@ -801,6 +818,28 @@ function GetRangeItems(parameters: SingleRecord, properties: SingleRecord, cb) {
     ExecuteRequest(url, null, "GET", function (responseText) {
         if (typeof cb === 'function')
             cb(responseText);
+    });
+}
+
+function onexecuteGetColumnNames(parameters: SingleRecord, properties: SingleRecord) {
+    GetRangeItems(parameters, properties, function (a) {
+        
+        var count = 0;
+        var objArr = [];
+
+        if (a.text.length > 0)
+        {
+            count = a.text[0].length;
+
+            for (var i = 1; i < count + 1; i++)
+            {
+                objArr.push({
+                    [ColumnName]: i
+                });
+            }
+        }
+
+        postResult(objArr);
     });
 }
 
@@ -1044,8 +1083,7 @@ function CreatePlanTask(parameters: SingleRecord, properties: SingleRecord, cb) 
     let taskDueDate = properties[TaskDueDate] != null && properties[TaskDueDate] != "" ? properties[TaskDueDate].toString() : "";
     let bucketId = properties[BucketId];
 
-    if (taskDueDate != "")
-    {
+    if (taskDueDate != "") {
         taskDueDate = new Date(taskDueDate).toISOString().split("T")[0];
     }
 
