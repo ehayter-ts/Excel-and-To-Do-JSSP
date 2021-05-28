@@ -58,9 +58,17 @@ const Column18 = "column18";
 const Column19 = "column19";
 const Column20 = "column20";
 const ColumnName = "columnName";
+const WorksheetName = "worksheetName";
+const WorksheetId = "worksheetId";
+const WorksheetPosition = "worksheetPosition";
+const WorksheetVisibility = "worksheetVisibility";
+const WorksheetRange = "worksheetRange";
 
 const UsedRangeItems = "getUsedRangeItems";
-const GetColumnNames = "getColumnNames";
+const GetUsedRangeColumnNames = "getUsedRangeColumnNames";
+const GetRangeColumnNames = "getRangeColumnNames";
+const GetWorkbookWorksheets = "getWorkbookWorksheets";
+const GetRangeItems = "getRangeItems";
 
 //
 //Group
@@ -307,6 +315,31 @@ ondescribe = function () {
                         displayName: "Column Count",
                         description: "Column Count",
                         type: "string"
+                    },
+                    [WorksheetId]: {
+                        displayName: "Worksheet ID",
+                        description: "Worksheet ID",
+                        type: "string"
+                    },
+                    [WorksheetName]: {
+                        displayName: "Worksheet Name",
+                        description: "Worksheet Name",
+                        type: "string"
+                    },
+                    [WorksheetPosition]: {
+                        displayName: "Worksheet Position",
+                        description: "Worksheet Position",
+                        type: "string"
+                    },
+                    [WorksheetVisibility]: {
+                        displayName: "Worksheet Visibility",
+                        description: "Worksheet Visibility",
+                        type: "string"
+                    },
+                    [WorksheetRange]: {
+                        displayName: "Worksheet Range",
+                        description: "Worksheet Range",
+                        type: "string"
                     }
                 },
                 methods: {
@@ -317,12 +350,33 @@ ondescribe = function () {
                         requiredInputs: [FileId, ExcelSheetName],
                         outputs: [Column1, Column2, Column3, Column4, Column5, Column6, Column7, Column8, Column9, Column10, Column11, Column12, Column13, Column14, Column15, Column16, Column17, Column18, Column19, Column20]
                     },
-                    [GetColumnNames]: {
-                        displayName: "Get Column Counts",
+                    [GetUsedRangeColumnNames]: {
+                        displayName: "Get Used Range Column Counts",
                         type: "list",
                         inputs: [FileId, ExcelSheetName],
                         requiredInputs: [FileId, ExcelSheetName],
                         outputs: [ColumnName]
+                    },
+                    [GetRangeColumnNames]: {
+                        displayName: "Get Range Column Counts",
+                        type: "list",
+                        inputs: [FileId, ExcelSheetName, WorksheetRange],
+                        requiredInputs: [FileId, ExcelSheetName, WorksheetRange],
+                        outputs: [ColumnName]
+                    },
+                    [GetWorkbookWorksheets]: {
+                        displayName: "Get Worksheets",
+                        type: "list",
+                        inputs: [FileId],
+                        requiredInputs: [FileId],
+                        outputs: [WorksheetId, WorksheetName, WorksheetPosition, WorksheetVisibility]
+                    },
+                    [GetRangeItems]: {
+                        displayName: "Get Worksheet Rows in a Specified Range",
+                        type: "list",
+                        inputs: [FileId, ExcelSheetName, WorksheetRange],
+                        requiredInputs: [FileId, ExcelSheetName, WorksheetRange],
+                        outputs: [Column1, Column2, Column3, Column4, Column5, Column6, Column7, Column8, Column9, Column10, Column11, Column12, Column13, Column14, Column15, Column16, Column17, Column18, Column19, Column20]
                     }
                 }
             },
@@ -582,8 +636,17 @@ function onexecuteExcel(methodName: string, parameters: SingleRecord, properties
         case UsedRangeItems:
             onexecuteUsedRange(parameters, properties);
             break;
-        case GetColumnNames:
-            onexecuteGetColumnNames(parameters, properties);
+        case GetUsedRangeColumnNames:
+            onexecuteGetUsedRangeColumnNames(parameters, properties);
+            break;
+        case GetRangeColumnNames:
+            onexecuteGetRangeColumnNames(parameters, properties);
+            break;
+        case GetWorkbookWorksheets:
+            onexecuteGetWorksheets(parameters, properties);
+            break;
+        case GetRangeItems:
+            onexecuteGetRangeItems(parameters, properties);
             break;
         default: throw new Error("The method " + methodName + " is not supported..");
     }
@@ -789,9 +852,9 @@ function CreateDriveFolder(parameters: SingleRecord, properties: SingleRecord, c
     });
 }
 
-function onexecuteUsedRange(parameters: SingleRecord, properties: SingleRecord) {
-    GetRangeItems(parameters, properties, function (a) {
-        var obj = a.text.map(x => {
+function onexecuteGetRangeItems(parameters: SingleRecord, properties: SingleRecord) {
+    GetItemsByRange(parameters, properties, function (a) {
+        var obj = a.values.map(x => {
             var obj = {};
 
             for (var i = 0; i < x.length; i++) {
@@ -806,7 +869,41 @@ function onexecuteUsedRange(parameters: SingleRecord, properties: SingleRecord) 
     });
 }
 
-function GetRangeItems(parameters: SingleRecord, properties: SingleRecord, cb) {
+function GetItemsByRange(parameters: SingleRecord, properties: SingleRecord, cb) {
+    let fileId = properties[FileId];
+    let sheetName = properties[ExcelSheetName];
+    let range = properties[WorksheetRange];
+
+    if (!(typeof fileId === "string")) throw new Error("properties[FileId] is not of type string");
+    if (!(typeof sheetName === "string")) throw new Error("properties[ExcelSheetName] is not of type string");
+    if (!(typeof range === "string")) throw new Error("properties[WorksheetRange] is not of type string");
+
+    var url = baseUriEndpoint + `/me/drive/items/${fileId}/workbook/worksheets/${sheetName}/range(address='${range}')`;
+
+    ExecuteRequest(url, null, "GET", function (responseText) {
+        if (typeof cb === 'function')
+            cb(responseText);
+    });
+}
+
+function onexecuteUsedRange(parameters: SingleRecord, properties: SingleRecord) {
+    GetUsedRangeItems(parameters, properties, function (a) {
+        var obj = a.values.map(x => {
+            var obj = {};
+
+            for (var i = 0; i < x.length; i++) {
+                if ((i + 1) < 21) {
+                    obj["column" + (i + 1)] = x[i];
+                }
+            }
+            return obj;
+        });
+
+        postResult(obj);
+    });
+}
+
+function GetUsedRangeItems(parameters: SingleRecord, properties: SingleRecord, cb) {
     let fileId = properties[FileId];
     let sheetName = properties[ExcelSheetName];
 
@@ -821,18 +918,16 @@ function GetRangeItems(parameters: SingleRecord, properties: SingleRecord, cb) {
     });
 }
 
-function onexecuteGetColumnNames(parameters: SingleRecord, properties: SingleRecord) {
-    GetRangeItems(parameters, properties, function (a) {
-        
+function onexecuteGetUsedRangeColumnNames(parameters: SingleRecord, properties: SingleRecord) {
+    GetUsedRangeItems(parameters, properties, function (a) {
+
         var count = 0;
         var objArr = [];
 
-        if (a.text.length > 0)
-        {
+        if (a.text.length > 0) {
             count = a.text[0].length;
 
-            for (var i = 1; i < count + 1; i++)
-            {
+            for (var i = 1; i < count + 1; i++) {
                 objArr.push({
                     [ColumnName]: i
                 });
@@ -840,6 +935,54 @@ function onexecuteGetColumnNames(parameters: SingleRecord, properties: SingleRec
         }
 
         postResult(objArr);
+    });
+}
+
+function onexecuteGetRangeColumnNames(parameters: SingleRecord, properties: SingleRecord) {
+    GetItemsByRange(parameters, properties, function (a) {
+
+        var count = 0;
+        var objArr = [];
+
+        if (a.text.length > 0) {
+            count = a.text[0].length;
+
+            for (var i = 1; i < count + 1; i++) {
+                objArr.push({
+                    [ColumnName]: i
+                });
+            }
+        }
+
+        postResult(objArr);
+    });
+}
+
+function onexecuteGetWorksheets(parameters: SingleRecord, properties: SingleRecord) {
+    GetWorksheets(parameters, properties, function (a) {
+        var obj = a.value.map(x => {
+            return {
+                [WorksheetId]: x.id,
+                [WorksheetName]: x.name,
+                [WorksheetPosition]: x.position,
+                [WorksheetVisibility]: x.visibility
+            };
+        });
+
+        postResult(obj);
+    });
+}
+
+function GetWorksheets(parameters: SingleRecord, properties: SingleRecord, cb) {
+    let fileId = properties[FileId];
+
+    if (!(typeof fileId === "string")) throw new Error("properties[FileId] is not of type string");
+
+    var url = baseUriEndpoint + `/me/drive/items/${fileId}/workbook/worksheets`;
+
+    ExecuteRequest(url, null, "GET", function (responseText) {
+        if (typeof cb === 'function')
+            cb(responseText);
     });
 }
 
