@@ -881,12 +881,12 @@ function onexecuteUploadFile(parameters: SingleRecord, properties: SingleRecord)
 }
 
 function UploadNewFile(parameters: SingleRecord, properties: SingleRecord, cb) {
-    let file = properties[File];
+    let file = properties[File] as Attachment;
     
     console.log(file);
     console.log(typeof(file));
 
-    postResult({[FileDebug]: file.toString() + " type: " + (typeof(file))});
+    postResult({[FileDebug]: file.content.toString()});
 
     // if (!(typeof folderName === "string")) throw new Error("properties[FolderName] is not of type string");
 
