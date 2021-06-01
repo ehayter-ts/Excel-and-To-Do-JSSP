@@ -31,11 +31,9 @@ const FilePath = "filePath";
 const FolderName = "folderName";
 const FolderPath = "folderPath";
 const File = "file";
-const FileDebug = "fileDebug";
 
 const FileSearch = "searchFile";
 const CreateFolder = "createFolder";
-const UploadFile = "uploadFile";
 
 //
 //Excel
@@ -186,17 +184,12 @@ ondescribe = function () {
                         displayName: "File",
                         description: "File",
                         type: "attachment"
-                    },
-                    [FileDebug]: {
-                        displayName: "File Debug",
-                        description: "File Debug",
-                        type: "string"
                     }
                 },
                 methods: {
                     [FileSearch]: {
                         displayName: "Search for a file in my OneDrive",
-                        type: "read",
+                        type: "list",
                         inputs: [FileName, FilePath],
                         requiredInputs: [FileName],
                         outputs: [FileId, FileWebUrl, FileSize, FileName, FileCreated, FileCreatedBy, FileCreatedByEmail, FileMimeType]
@@ -207,13 +200,6 @@ ondescribe = function () {
                         inputs: [FolderName, FolderPath],
                         requiredInputs: [FolderName],
                         outputs: []
-                    },
-                    [UploadFile]: {
-                        displayName: "Upload File",
-                        type: "execute",
-                        inputs: [File],
-                        requiredInputs: [File],
-                        outputs: [FileDebug]
                     }
                 }
             },
@@ -647,9 +633,6 @@ function onexecuteDrive(methodName: string, parameters: SingleRecord, properties
         case CreateFolder:
             onexecuteCreateFolder(parameters, properties);
             break;
-        case UploadFile:
-            onexecuteUploadFile(parameters, properties);
-            break;
         default: throw new Error("The method " + methodName + " is not supported..");
     }
 }
@@ -873,41 +856,6 @@ function CreateDriveFolder(parameters: SingleRecord, properties: SingleRecord, c
         if (typeof cb === 'function')
             cb();
     });
-}
-
-function onexecuteUploadFile(parameters: SingleRecord, properties: SingleRecord) {
-    UploadNewFile(parameters, properties, function () {
-    });
-}
-
-function UploadNewFile(parameters: SingleRecord, properties: SingleRecord, cb) {
-    let file = properties[File] as Attachment;
-    
-    console.log(file);
-    console.log(typeof(file));
-
-    postResult({[FileDebug]: file.content.toString()});
-
-    // if (!(typeof folderName === "string")) throw new Error("properties[FolderName] is not of type string");
-
-    // var url;
-    // if ((typeof folderPath === "string") && (folderPath != "")) {
-    //     url = baseUriEndpoint + `/me/drive/root:/${folderPath}:/children'`;
-    // }
-    // else {
-    //     url = baseUriEndpoint + `/me/drive/root/children`;
-    // }
-
-    // var data = {
-    //     "name": folderName,
-    //     "folder": {},
-    //     "@microsoft.graph.conflictBehavior": "replace"
-    // };
-
-    // ExecuteRequest(url, JSON.stringify(data), "POST", function () {
-    //     if (typeof cb === 'function')
-    //         cb();
-    // });
 }
 
 function onexecuteGetRangeItems(parameters: SingleRecord, properties: SingleRecord) {
