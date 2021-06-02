@@ -352,7 +352,7 @@ ondescribe = function () {
                 methods: {
                     [UsedRange]: {
                         displayName: "Get Used Range",
-                        type: "list",
+                        type: "read",
                         inputs: [FileId, ExcelSheetName],
                         requiredInputs: [FileId, ExcelSheetName],
                         outputs: [WorksheetRange]
