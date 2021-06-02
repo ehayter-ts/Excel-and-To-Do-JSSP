@@ -70,6 +70,7 @@ const GetUsedRangeColumnNames = "getUsedRangeColumnNames";
 const GetRangeColumnNames = "getRangeColumnNames";
 const GetWorkbookWorksheets = "getWorkbookWorksheets";
 const GetRangeItems = "getRangeItems";
+const UsedRange = "getUsedRange";
 
 //
 //Group
@@ -349,12 +350,19 @@ ondescribe = function () {
                     }
                 },
                 methods: {
+                    [UsedRange]: {
+                        displayName: "Get Used Range",
+                        type: "list",
+                        inputs: [FileId, ExcelSheetName],
+                        requiredInputs: [FileId, ExcelSheetName],
+                        outputs: [WorksheetRange]
+                    },
                     [UsedRangeItems]: {
                         displayName: "Get Worksheet Rows in Used Range",
                         type: "list",
                         inputs: [FileId, ExcelSheetName],
                         requiredInputs: [FileId, ExcelSheetName],
-                        outputs: [Column1, Column2, Column3, Column4, Column5, Column6, Column7, Column8, Column9, Column10, Column11, Column12, Column13, Column14, Column15, Column16, Column17, Column18, Column19, Column20, WorksheetRange]
+                        outputs: [Column1, Column2, Column3, Column4, Column5, Column6, Column7, Column8, Column9, Column10, Column11, Column12, Column13, Column14, Column15, Column16, Column17, Column18, Column19, Column20]
                     },
                     [GetUsedRangeColumnNames]: {
                         displayName: "Get Used Range Column Counts",
@@ -639,6 +647,9 @@ function onexecuteDrive(methodName: string, parameters: SingleRecord, properties
 
 function onexecuteExcel(methodName: string, parameters: SingleRecord, properties: SingleRecord) {
     switch (methodName) {
+        case UsedRange:
+            onexecuteGetUsedRange(parameters, properties);
+            break;
         case UsedRangeItems:
             onexecuteUsedRange(parameters, properties);
             break;
@@ -892,6 +903,14 @@ function GetItemsByRange(parameters: SingleRecord, properties: SingleRecord, cb)
     });
 }
 
+function onexecuteGetUsedRange(parameters: SingleRecord, properties: SingleRecord) {
+    GetUsedRangeItems(parameters, properties, function (a) {
+        postResult({
+            [WorksheetRange]: a.address.split("!")[1]
+        });
+    });
+}
+
 function onexecuteUsedRange(parameters: SingleRecord, properties: SingleRecord) {
     GetUsedRangeItems(parameters, properties, function (a) {
         var obj = a.values.map(x => {
@@ -904,8 +923,6 @@ function onexecuteUsedRange(parameters: SingleRecord, properties: SingleRecord) 
             }
             return obj;
         });
-
-        obj[WorksheetRange] = a.address;
 
         postResult(obj);
     });
