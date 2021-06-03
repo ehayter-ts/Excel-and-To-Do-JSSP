@@ -323,8 +323,8 @@ ondescribe = function () {
                         type: "string"
                     },
                     [ColumnName]: {
-                        displayName: "Column Count",
-                        description: "Column Count",
+                        displayName: "Column Index",
+                        description: "Column Index",
                         type: "string"
                     },
                     [WorksheetId]: {
