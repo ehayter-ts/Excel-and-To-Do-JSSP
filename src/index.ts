@@ -64,6 +64,9 @@ const WorksheetId = "worksheetId";
 const WorksheetPosition = "worksheetPosition";
 const WorksheetVisibility = "worksheetVisibility";
 const WorksheetRange = "worksheetRange";
+const RowCount = "rowCount";
+const ColumnCount = "columnCount";
+const CellValue = "cellValue";
 
 const UsedRangeItems = "getUsedRangeItems";
 const GetUsedRangeColumnNames = "getUsedRangeColumnNames";
@@ -71,6 +74,7 @@ const GetRangeColumnNames = "getRangeColumnNames";
 const GetWorkbookWorksheets = "getWorkbookWorksheets";
 const GetRangeItems = "getRangeItems";
 const UsedRange = "getUsedRange";
+const GetCell = "getCell";
 
 //
 //Group
@@ -347,6 +351,21 @@ ondescribe = function () {
                         displayName: "Worksheet Range",
                         description: "Worksheet Range",
                         type: "string"
+                    },
+                    [RowCount]: {
+                        displayName: "Row Count",
+                        description: "Row Count",
+                        type: "number"
+                    },
+                    [ColumnCount]: {
+                        displayName: "Column Count",
+                        description: "Column Count",
+                        type: "number"
+                    },
+                    [CellValue]: {
+                        displayName: "Cell Value",
+                        description: "Cell Value",
+                        type: "string"
                     }
                 },
                 methods: {
@@ -391,6 +410,13 @@ ondescribe = function () {
                         inputs: [FileId, ExcelSheetName, WorksheetRange],
                         requiredInputs: [FileId, ExcelSheetName, WorksheetRange],
                         outputs: [Column1, Column2, Column3, Column4, Column5, Column6, Column7, Column8, Column9, Column10, Column11, Column12, Column13, Column14, Column15, Column16, Column17, Column18, Column19, Column20]
+                    },
+                    [GetCell]: {
+                        displayName: "Get a Cell Value",
+                        type: "read",
+                        inputs: [FileId, ExcelSheetName, WorksheetRange, RowCount, ColumnCount],
+                        requiredInputs: [FileId, ExcelSheetName, WorksheetRange, RowCount, ColumnCount],
+                        outputs: [CellValue]
                     }
                 }
             },
@@ -665,6 +691,9 @@ function onexecuteExcel(methodName: string, parameters: SingleRecord, properties
         case GetRangeItems:
             onexecuteGetRangeItems(parameters, properties);
             break;
+        case GetCell:
+            onexecuteGetCell(parameters, properties);
+            break;
         default: throw new Error("The method " + methodName + " is not supported..");
     }
 }
@@ -896,6 +925,35 @@ function GetItemsByRange(parameters: SingleRecord, properties: SingleRecord, cb)
     if (!(typeof range === "string")) throw new Error("properties[WorksheetRange] is not of type string");
 
     var url = baseUriEndpoint + `/me/drive/items/${fileId}/workbook/worksheets/${sheetName}/range(address='${range}')`;
+
+    ExecuteRequest(url, null, "GET", function (responseText) {
+        if (typeof cb === 'function')
+            cb(responseText);
+    });
+}
+
+function onexecuteGetCell(parameters: SingleRecord, properties: SingleRecord) {
+    GetCellValue(parameters, properties, function (a) {
+        postResult({
+            [CellValue]: a.values[0][0]
+        });
+    });
+}
+
+function GetCellValue(parameters: SingleRecord, properties: SingleRecord, cb) {
+    let fileId = properties[FileId];
+    let sheetName = properties[ExcelSheetName];
+    let range = properties[WorksheetRange];
+    let rowCount = properties[RowCount];
+    let columnCount = properties[ColumnCount];
+
+    if (!(typeof fileId === "string")) throw new Error("properties[FileId] is not of type string");
+    if (!(typeof sheetName === "string")) throw new Error("properties[ExcelSheetName] is not of type string");
+    if (!(typeof range === "string")) throw new Error("properties[WorksheetRange] is not of type string");
+    if (!(typeof rowCount === "number")) throw new Error("properties[RowCount] is not of type integer");
+    if (!(typeof columnCount === "number")) throw new Error("properties[ColumnCount] is not of type integer");
+
+    var url = baseUriEndpoint + `/me/drive/items/${fileId}/workbook/worksheets/${sheetName}/range(address='${range}')/cell(row=${rowCount},column=${columnCount})`;
 
     ExecuteRequest(url, null, "GET", function (responseText) {
         if (typeof cb === 'function')
