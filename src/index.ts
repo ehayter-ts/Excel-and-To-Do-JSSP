@@ -75,6 +75,8 @@ const GetWorkbookWorksheets = "getWorkbookWorksheets";
 const GetRangeItems = "getRangeItems";
 const UsedRange = "getUsedRange";
 const GetCell = "getCell";
+const GetRow = "getRow";
+const GetRangeRow = "getRangeRow";
 
 //
 //Group
@@ -417,6 +419,20 @@ ondescribe = function () {
                         inputs: [FileId, ExcelSheetName, WorksheetRange, RowCount, ColumnCount],
                         requiredInputs: [FileId, ExcelSheetName, WorksheetRange, RowCount, ColumnCount],
                         outputs: [CellValue]
+                    },
+                    [GetRow]: {
+                        displayName: "Get a Worksheet Row in Used Range",
+                        type: "read",
+                        inputs: [FileId, ExcelSheetName, RowCount],
+                        requiredInputs: [FileId, ExcelSheetName, RowCount],
+                        outputs: [Column1, Column2, Column3, Column4, Column5, Column6, Column7, Column8, Column9, Column10, Column11, Column12, Column13, Column14, Column15, Column16, Column17, Column18, Column19, Column20]
+                    },
+                    [GetRangeRow]: {
+                        displayName: "Get a Worksheet Row in Range",
+                        type: "read",
+                        inputs: [FileId, ExcelSheetName, WorksheetRange, RowCount],
+                        requiredInputs: [FileId, ExcelSheetName, WorksheetRange, RowCount],
+                        outputs: [Column1, Column2, Column3, Column4, Column5, Column6, Column7, Column8, Column9, Column10, Column11, Column12, Column13, Column14, Column15, Column16, Column17, Column18, Column19, Column20]
                     }
                 }
             },
@@ -694,6 +710,12 @@ function onexecuteExcel(methodName: string, parameters: SingleRecord, properties
         case GetCell:
             onexecuteGetCell(parameters, properties);
             break;
+        case GetRow:
+            onexecuteGetUsedRangeRow(parameters, properties);
+            break;
+        case GetRangeRow:
+            onexecuteGetRangeRow(parameters, properties);
+            break;
         default: throw new Error("The method " + methodName + " is not supported..");
     }
 }
@@ -929,6 +951,74 @@ function GetItemsByRange(parameters: SingleRecord, properties: SingleRecord, cb)
     ExecuteRequest(url, null, "GET", function (responseText) {
         if (typeof cb === 'function')
             cb(responseText);
+    });
+}
+
+function GetItemsByRangeRow(parameters: SingleRecord, properties: SingleRecord, cb) {
+    let fileId = properties[FileId];
+    let sheetName = properties[ExcelSheetName];
+    let range = properties[WorksheetRange];
+    let index = properties[ColumnCount];
+
+    if (!(typeof fileId === "string")) throw new Error("properties[FileId] is not of type string");
+    if (!(typeof sheetName === "string")) throw new Error("properties[ExcelSheetName] is not of type string");
+    if (!(typeof range === "string")) throw new Error("properties[WorksheetRange] is not of type string");
+    if (!(typeof index === "string")) throw new Error("properties[ColumnCount] is not of type string");
+
+    var url = baseUriEndpoint + `/me/drive/items/${fileId}/workbook/worksheets/${sheetName}/range(address='${range}')/visibleView/rows/itemAt(index=${index})`;
+
+    ExecuteRequest(url, null, "GET", function (responseText) {
+        if (typeof cb === 'function')
+            cb(responseText);
+    });
+}
+
+function onexecuteGetRangeRow(parameters: SingleRecord, properties: SingleRecord) {
+    GetItemsByRangeRow(parameters, properties, function (a) {
+        var obj = {};
+
+        if (a.values.length > 0) {
+            for (var i = 0; i < a.values[0].length; i++) {
+                if ((i + 1) < 21) {
+                    obj["column" + (i + 1)] = a.values[0][i];
+                }
+            }
+        }
+
+        postResult(obj);
+    });
+}
+
+function GetItemsByUsedRangeRow(parameters: SingleRecord, properties: SingleRecord, cb) {
+    let fileId = properties[FileId];
+    let sheetName = properties[ExcelSheetName];
+    let index = properties[ColumnCount];
+
+    if (!(typeof fileId === "string")) throw new Error("properties[FileId] is not of type string");
+    if (!(typeof sheetName === "string")) throw new Error("properties[ExcelSheetName] is not of type string");
+    if (!(typeof index === "string")) throw new Error("properties[ColumnCount] is not of type string");
+
+    var url = baseUriEndpoint + `/me/drive/items/${fileId}/workbook/worksheets/${sheetName}/usedRange/visibleView/rows/itemAt(index=${index})`;
+
+    ExecuteRequest(url, null, "GET", function (responseText) {
+        if (typeof cb === 'function')
+            cb(responseText);
+    });
+}
+
+function onexecuteGetUsedRangeRow(parameters: SingleRecord, properties: SingleRecord) {
+    GetItemsByUsedRangeRow(parameters, properties, function (a) {
+        var obj = {};
+
+        if (a.values.length > 0) {
+            for (var i = 0; i < a.values[0].length; i++) {
+                if ((i + 1) < 21) {
+                    obj["column" + (i + 1)] = a.values[0][i];
+                }
+            }
+        }
+
+        postResult(obj);
     });
 }
 
