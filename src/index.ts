@@ -963,7 +963,7 @@ function GetItemsByRangeRow(parameters: SingleRecord, properties: SingleRecord, 
     if (!(typeof fileId === "string")) throw new Error("properties[FileId] is not of type string");
     if (!(typeof sheetName === "string")) throw new Error("properties[ExcelSheetName] is not of type string");
     if (!(typeof range === "string")) throw new Error("properties[WorksheetRange] is not of type string");
-    if (!(typeof index === "string")) throw new Error("properties[ColumnCount] is not of type string");
+    if ((typeof index === "string") || index < 0) throw new Error("properties[ColumnCount] is not correct");
 
     var url = baseUriEndpoint + `/me/drive/items/${fileId}/workbook/worksheets/${sheetName}/range(address='${range}')/visibleView/rows/itemAt(index=${index})`;
 
@@ -996,7 +996,7 @@ function GetItemsByUsedRangeRow(parameters: SingleRecord, properties: SingleReco
 
     if (!(typeof fileId === "string")) throw new Error("properties[FileId] is not of type string");
     if (!(typeof sheetName === "string")) throw new Error("properties[ExcelSheetName] is not of type string");
-    if (!(typeof index === "string")) throw new Error("properties[ColumnCount] is not of type string");
+    if ((typeof index === "string") || index < 0) throw new Error("properties[ColumnCount] is not correct");
 
     var url = baseUriEndpoint + `/me/drive/items/${fileId}/workbook/worksheets/${sheetName}/usedRange/visibleView/rows/itemAt(index=${index})`;
 
